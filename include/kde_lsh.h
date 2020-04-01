@@ -6,32 +6,31 @@
 #ifndef SSKDE_INCLUDE_LSH_KDE_H_
 #define SSKDE_INCLUDE_LSH_KDE_H_
 
+#include "utils.h"
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 #include <vector>
 #include <unordered_map>
 
 using std::vector;
 using std::unordered_map;
 
-const double CONST_PI = 3.14159265358979323846264338327950288;
-const double SQRT_2PI = sqrt(2.0 / CONST_PI);
+const T CONST_PI = 3.14159265358979323846264338327950288f;
+const T SQRT_2PI = std::sqrt(2.0f / CONST_PI);
 
 class HashBucket {
  public:
   /**
    * \brief default constructor
    */
-  HashBucket() : count(0), x_() {
-  }
+  HashBucket() : count(0), x_() {}
 
   /**
    * \brief Build a new hash bucket for data point p.
    * \param p a data point that belongs to the bucket
    */
-  HashBucket(T* p, int d) : count(1), x_(d) {
-    std::memcpy(x_.data(), p, sizeof(T) * d);
-  }
+  HashBucket(const T* p, int d) : count(1), x_(p, p+d) {}
 
   /**
    * Insert point into bucket: update count and replace bucket sample
@@ -40,13 +39,16 @@ class HashBucket {
    * \param p
    * \param rng
    */
-  void update(T* p, int d) {
+  void update(const T* p, int d) {
     count += 1;
     std::random_device rd;
     auto rng = std::mt19937_64(rd());
-    auto distribution = std::uniform_real_distribution<>(0, 1);
-    float r = distribution(rng);
+    auto distribution = std::uniform_real_distribution<T>(0, 1);
+    T r = distribution(rng);
     if (r <= 1.0 / count) {
+      if (x_.empty()) {
+        x_.resize(1ull * d);
+      }
       std::memcpy(x_.data(), p, sizeof(T) * d);
     }
   }
@@ -60,7 +62,7 @@ class HashBucket {
   void insert(T* p, int d) {
     count += 1;
     x_.resize(x_.size() + d);
-    std::memcpy(x_.data() - d, p, sizeof(T) * d);
+    std::memcpy(x_.data() + x_.size() - d, p, sizeof(T) * d);
   }
 
   int size() const {
@@ -69,7 +71,7 @@ class HashBucket {
 
   const T* data() const {
     return x_.data();
-  };
+  }
 
  private:
   int count;
@@ -78,34 +80,47 @@ class HashBucket {
 
 class E2LSH {
  public:
- /**
- * \brief Construct an LSH table
- * \param xs dataset
- * \param n size of dataset
- * \param d dimension of dataset
- * \param k number of hash functions
- * \param w bin width
- */
+  /**
+   * \brief Construct an LSH table
+   * \param xs dataset
+   * \param n size of dataset
+   * \param d dimension of dataset
+   * \param k number of hash functions
+   * \param w bin width
+  */
   E2LSH(int d, int k, T w) : k(k), d(d), w(w) {
-    a_ = random_normal(k * d, .0, 1.0 / (w * w));
-    b_ = random_uniform(k, .0, 1.0);
+    a_ = random_normal(k * d);
+    b_ = random_uniform(k, .0, w);
   }
 
-  size_t hash(T* x) const {
-    vector<T> v(b_, b_ + k);
-    for (int i = 0; i < k; ++i) {
-      v[i] += inner_product(x, &a_[i * d], d);
+  void init(const T* a, const T* b) {
+    std::memcpy(a_, a, sizeof(T) * k * d);
+    std::memcpy(b_, b, sizeof(T) * k);
+  }
+
+  ~E2LSH() {
+    delete [] a_;
+    delete [] b_;
+  }
+
+  vector<int > hash(const T* x) const {
+    vector<int > v(k, 0);
+    T* a = a_;
+    T* b = b_;
+    for (int i = 0; i < k; ++i, a+=d, b++) {
+      T t = inner_product(x, a, d) + *b;
+      v[i] = static_cast<int>(std::ceil(t / w));
     }
-    return hash_array(v.data(), k);
+    return v;
   }
 
   T probability(T c) const {
     if (c <= 1e-10)
-      return 1.;
+      return 1.f;
     c = c / w;
-    T base = std::erf(1 / c) - SQRT_2PI * c *
-             (1 - std::exp(-1.0f / (2 * c * c)));
-    return std::pow(base, k);
+    T base = std::erf(1.0f / c) - SQRT_2PI * c *
+             (1.0f - std::exp(-1.0f / (2 * c * c)));
+    return static_cast<T >(std::pow(base, k));
   }
 
  public:
@@ -128,14 +143,14 @@ class HashTable {
    * \param k number of hash functions
    * \param w bin width
    */
-  explicit HashTable(const E2LSH& lsh) : lsh_(lsh) {
-  }
+  explicit HashTable(const E2LSH& lsh) : count_(0), lsh_(lsh) {}
 
-  void insert(T* x) {
-    size_t key = lsh_.hash(x);
+  void insert(const T* x) {
+    vector<int > key = lsh_.hash(x);
     auto it = table.find(key);
     if (it == table.end()) {
       table[key] = HashBucket(x, lsh_.d);
+      count_++;
     } else {
       it->second.update(x, lsh_.d);
     }
@@ -146,29 +161,35 @@ class HashTable {
    * \param query  query point
    * \return 
    */
-  T query(T* q) const {
-    size_t key = lsh_.hash(q);
+  T query(const T* q) const {
+    vector<int > key = lsh_.hash(q);
     HashBucket bucket;
     const auto it = table.find(key);
     if (it == table.end()) {
-      return 0.;
+      return 0.f;
     } else {
       T c_sqr = l2dist_sqr(q, it->second.data(), lsh_.d);
-      return gaussian_kernel(c_sqr, 1.) * it->second.size()
+      return gaussian_kernel(c_sqr, 1.f) * it->second.size()
              / lsh_.probability(std::sqrt(c_sqr));
     }
   }
 
+  int size() {
+    return count_;
+  }
+
  private:
+  int count_;
   const E2LSH& lsh_;
-  unordered_map<size_t, HashBucket> table;
+  unordered_map<vector<int >, HashBucket, VectorHash> table;
 };
 
-class LSHEstimater {
+class HBE {
  public:
-  LSHEstimater(T* xs, int n, int d, int l, int m, int k, T w): l_(l), m_(m), n_(n), d_(d) {
-    hash_.reserve(l * m);
-    tables_.reserve(l * m);
+  HBE(T* xs, int n, int d, int l, int m, int k, T w)
+             : l_(l), m_(m), n_(n), d_(d) {
+    hash_.reserve(1ull * l * m);
+    tables_.reserve(1ull * l * m);
     for (int i = 0; i < l * m; ++i) {
       hash_.emplace_back(d, k, w);
       tables_.emplace_back(hash_.back());
@@ -192,7 +213,7 @@ class LSHEstimater {
         z[i] += tables_[table_idx++].query(q);
       }
     }
-    return median(&z) / n_;
+    return median(&z) / n_ / m;
   }
 
  private:

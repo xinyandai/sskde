@@ -31,3 +31,8 @@ foreach(app  ${apps})
     add_executable(run_${app} app/${app}.cc ${SS_KDE_SOURCES})
 endforeach()
 
+set(apps lsh)
+foreach(app  ${apps})
+    add_executable(test_${app} test/test_${app}.cc ${SS_KDE_SOURCES})
+endforeach()
+

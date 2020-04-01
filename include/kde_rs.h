@@ -8,6 +8,7 @@
 
 #include <utils.h>
 #include <cstring>
+#include <vector>
 
 class RandomSample {
  public:

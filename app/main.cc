@@ -19,18 +19,22 @@ int main() {
   vector<float > x;
   cout << "loading " << file << endl;
   load(&x, &n, &d, file, 0, 1);
+
   cout << "shape of " << n << "x" << d << endl;
   cout << "constructing ExactKDE" << endl;
   ExactKDE kde(x.data(), n, d);
   cout << "constructing RandomSample" << endl;
   RandomSample rs(x.data(), n, d);
-  cout << "constructing ExactKDE" << endl;
-  LSHEstimater lsh(x.data(), n, d, 16, 16, 32, 1.0);
+  cout << "constructing HBE" << endl;
+  HBE lsh(x.data(), n, d, 1, 16, 16, 1024);
+  cout << "Exact KDE" << endl;
   cout << kde.query(x.data()) << endl;
+  cout << "HBE" << endl;
   cout << lsh.query(x.data(), 1, 1) << endl;
   cout << lsh.query(x.data(), 2, 2) << endl;
   cout << lsh.query(x.data(), 4, 4) << endl;
   cout << lsh.query(x.data(), 16, 16) << endl;
+  cout << "Random Sample" << endl;
   cout << rs.query(x.data(), 16, 16) << endl;
   cout << rs.query(x.data(), 32, 32) << endl;
   cout << rs.query(x.data(), 64, 64) << endl;
