@@ -7,6 +7,7 @@
 #define SSKDE_INCLUDE_UTILS_H_
 
 #include <algorithm>
+#include <random>
 #include <cmath>
 #include <vector>
 
