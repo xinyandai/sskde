@@ -18,11 +18,11 @@ class ExactKDE {
   ~ExactKDE() {
     delete[] x_;
   }
-  T query(T* q) const {
+  T query(const T* q) const {
     T density = 0;
     T* x = x_;
     for (int i = 0; i < n_; ++i, x+=d_) {
-      density += gaussian_kernel(q, x, d_, 1);
+      density += gaussian_kernel(q, x, 1, d_);
     }
     return density / n_;
   }

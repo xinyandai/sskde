@@ -23,7 +23,7 @@ class RandomSample {
     std::vector<T > z = std::vector<T >(l, 0);
     for (int i = 0; i < l; i ++) {
       for (int j = 0; j < m; j ++) {
-        z[i] += gaussian_kernel(q, x_ + distribution(rng) * d_, d_, 1);
+        z[i] += gaussian_kernel(q, x_ + distribution(rng) * d_, 1, d_);
       }
     }
     return median(&z) / m;
