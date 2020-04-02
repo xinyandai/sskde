@@ -16,7 +16,7 @@
 using T = float;
 using std::vector;
 
-/**instialized **/
+/**initialized in utils.cc**/
 extern std::random_device rd;
 extern std::mt19937_64 rng;
 
@@ -27,6 +27,15 @@ static T l2dist_sqr(const T *vec1, const T *vec2, const int dim) {
     dist += diff * diff;
   }
   return dist;
+}
+
+
+static T inner_product(const T *vec1, const T *vec2, const int dim) {
+  T ip = 0;
+  for (int i = 0; i < dim; ++i) {
+    ip += *(vec1++) * *(vec2++);
+  }
+  return ip;
 }
 
 
@@ -76,15 +85,6 @@ struct VectorHash {
     return seed;
   }
 };
-
-
-static T inner_product(const T *vec1, const T *vec2, const int dim) {
-  T ip = 0;
-  for (int i = 0; i < dim; ++i) {
-    ip += *(vec1++) * *(vec2++);
-  }
-  return ip;
-}
 
 #endif  //SSKDE_INCLUDE_UTILS_H_
 
