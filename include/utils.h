@@ -75,9 +75,9 @@ static T* random_uniform(int n, T lower = 0.0, T upper = 1.0) {
   return r;
 }
 
-
+template <typename Type=vector<int > >
 struct VectorHash {
-  int operator()(const vector<int> &v) const {
+  int operator()(const Type &v) const {
     int seed = 0;
     for (int ele : v) {
       seed ^= std::hash<int >{}(ele) + 0x9e3779b9 + (seed << 6) + (seed >> 2);

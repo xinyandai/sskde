@@ -11,9 +11,15 @@
 #include <cstring>
 #include <string>
 #include <vector>
+#include <tuple>
+#include <array>
+#include <unordered_map>
 
 #define Ks 256
 using CodeType = uint8_t;
+
+using std::array;
+using std::unordered_map;
 
 int vq(const T* w, const T* dict, int ks, int d) {
   int re = 0;
@@ -96,7 +102,7 @@ class VQE {
 
     x_ = new T[n * d];
     dict_ = new T[Ks * dims_[1]];
-    codes_ = new CodeType[M * n];
+    code_ = new CodeType[M * n];
     train_pq();
     std::memcpy(x_, x, sizeof(T) * n * d);
   }
@@ -105,7 +111,7 @@ class VQE {
     const int sub_d = dims_[1];
     for (int i = 0; i < M; ++i) {
       kmeans(/*centroids*/ &dict_[i * Ks * sub_d],
-             /*code*/      &codes_[i * n_],
+             /*code*/      &code_[i * n_],
              /*data*/      x_ + dims_[i],
              /*n*/         n_,
              /*Ks*/        Ks,
@@ -118,7 +124,7 @@ class VQE {
   ~VQE() {
     delete[] x_;
     delete[] dict_;
-    delete[] codes_;
+    delete[] code_;
   }
 
   T query(const T* q, T dist) const {
@@ -139,7 +145,7 @@ class VQE {
     for (int i = 0; i < n_; ++i, x+=d_) {
       T dist_sqr = 0;
       for (int m = 0; m < M; ++m) {
-        CodeType c = codes_[m * n_+ i];
+        CodeType c = code_[m * n_+ i];
         dist_sqr += table[m][c];
       }
       if (dist_sqr < dist) {
@@ -152,12 +158,13 @@ class VQE {
   }
 
  private:
-  int n_;
-  int d_;
+  const int n_;
+  const int d_;
 
   T*           x_;      // n * d
   T*           dict_;   // M * Ks * dims_[1]
-  CodeType*    codes_;  // M * n
+  CodeType*    code_;   // M * n
   vector<int > dims_;   // M + 1
 };
+
 #endif  // SSKDE_INCLUDE_KDE_VQ_H_

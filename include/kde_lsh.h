@@ -145,9 +145,9 @@ class HashTable {
 
   void insert(const T* x) {
     vector<int > key = lsh_.hash(x);
-    auto it = table.find(key);
-    if (it == table.end()) {
-      table[key] = HashBucket(x, lsh_.d);
+    auto it = table_.find(key);
+    if (it == table_.end()) {
+      table_[key] = HashBucket(x, lsh_.d);
       count_++;
     } else {
       it->second.update(x, lsh_.d);
@@ -162,8 +162,8 @@ class HashTable {
   T query(const T* q) const {
     vector<int > key = lsh_.hash(q);
     HashBucket bucket;
-    const auto it = table.find(key);
-    if (it == table.end()) {
+    const auto it = table_.find(key);
+    if (it == table_.end()) {
       return 0.f;
     } else {
       T c_sqr = l2dist_sqr(q, it->second.data(), lsh_.d);
@@ -179,7 +179,8 @@ class HashTable {
  private:
   int count_;
   const E2LSH& lsh_;
-  unordered_map<vector<int >, HashBucket, VectorHash> table;
+  unordered_map<vector<int >, HashBucket,
+                VectorHash<vector<int > > > table_;
 };
 
 class HBE {
