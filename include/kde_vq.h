@@ -72,7 +72,9 @@ void kmeans(T* centroids, CodeType* code, const T* data,
     for (int c = 0; c < ks; ++c) {
       if (count[c] == 0) {
         int t = distribution(rng);
-        std::memcpy(&centroids[c * sub_d], &data[t * full_d], sub_d * sizeof(T));
+        std::memcpy(&centroids[c * sub_d],
+                    &data[t * full_d],
+                    sub_d * sizeof(T));
       } else {
         for (int dim = 0; dim < sub_d; ++dim) {
           centroids[c * sub_d + dim] /= count[c];
