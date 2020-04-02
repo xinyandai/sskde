@@ -26,7 +26,7 @@ int main() {
   cout << "constructing RandomSample" << endl;
   RandomSample rs(x.data(), n, d);
   cout << "constructing HBE" << endl;
-  HBE lsh(x.data(), n, d, 1, 16, 16, 1024);
+  HBE lsh(x.data(), n, d, 1, 16, 16, 256.0);
   cout << "Exact KDE" << endl;
   cout << kde.query(x.data()) << endl;
   cout << "HBE" << endl;

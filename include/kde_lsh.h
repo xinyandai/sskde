@@ -201,9 +201,14 @@ class HBE {
         tables_[i].insert(x);
       }
     }
+    std::cout << "table size : ";
+    for (int i = 0; i < l * m; ++i) {
+      std::cout << tables_[i].size() << "  ";
+    }
+    std::cout << std::endl;
   }
 
-  T query(T* q, int l, int m) const {
+  T query(const T* q, int l, int m) const {
     l = std::min(l, l_);
     m = std::min(m, m_);
     std::vector<T > z = std::vector<T >(l, 0);

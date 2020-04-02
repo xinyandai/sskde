@@ -16,7 +16,8 @@ class RandomSample {
     x_ = new T[n * d];
     std::memcpy(x_, x, sizeof(T) * n * d);
   }
-  T query(T* q, int l, int m) const {
+
+  T query(const T* q, int l, int m) const {
     std::random_device rd;
     auto rng = std::mt19937_64(rd());
     std::uniform_int_distribution<int > distribution(0, n_ - 1);
@@ -28,10 +29,11 @@ class RandomSample {
     }
     return median(&z) / m;
   }
+
  private:
   T* x_;
   int n_;
   int d_;
 };
 
-#endif //SSKDE_INCLUDE_KDE_RS_H_
+#endif  // SSKDE_INCLUDE_KDE_RS_H_
