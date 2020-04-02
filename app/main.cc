@@ -5,6 +5,7 @@
 
 #include <kde_exact.h>
 #include <kde_rs.h>
+#include <kde_vq.h>
 #include <kde_lsh.h>
 #include <data_loader.h>
 
@@ -27,12 +28,20 @@ int main() {
   cout << "shape of " << n << "x" << d << endl;
   cout << "constructing ExactKDE" << endl;
   ExactKDE kde(x_ptr, n, d);
+  cout << "constructing VQE" << endl;
+  VQE<2> vqe(x_ptr, n, d);
   cout << "constructing RandomSample" << endl;
   RandomSample rs(x_ptr, n, d);
   cout << "constructing HBE" << endl;
   HBE lsh(x_ptr, n, d, 1, 16, 16, 8.0);
   cout << "Exact KDE" << endl;
   cout << kde.query(q) << endl;
+  cout << "Exact VQE" << endl;
+  cout << vqe.query(q, 0) << endl;
+  cout << vqe.query(q, 10) << endl;
+  cout << vqe.query(q, 20) << endl;
+  cout << vqe.query(q, 30) << endl;
+  cout << vqe.query(q, 40) << endl;
   cout << "HBE" << endl;
   cout << lsh.query(q, 1, 1) << endl;
   cout << lsh.query(q, 1, 2) << endl;
