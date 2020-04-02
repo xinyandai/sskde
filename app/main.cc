@@ -14,31 +14,35 @@ using std::cout;
 using std::endl;
 
 int main() {
-  int n, d;
-  const char* file = "../data/covtype/covtype.data";
-  vector<float > x;
-  cout << "loading " << file << endl;
-  load(&x, &n, &d, file, 0, 1);
+//  int n, d;
+//  vector<float > x;
+//  const char* file = "../data/covtype/covtype.data";
+//  cout << "loading " << file << endl;
+//  load(&x, &n, &d, 1, 0, 1);
+
+  int n = 100000, d = 16;
+  T* x_ptr = random_normal(n * d);
+  T* q = x_ptr;
 
   cout << "shape of " << n << "x" << d << endl;
   cout << "constructing ExactKDE" << endl;
-  ExactKDE kde(x.data(), n, d);
+  ExactKDE kde(x_ptr, n, d);
   cout << "constructing RandomSample" << endl;
-  RandomSample rs(x.data(), n, d);
+  RandomSample rs(x_ptr, n, d);
   cout << "constructing HBE" << endl;
-  HBE lsh(x.data(), n, d, 1, 16, 16, 256.0);
+  HBE lsh(x_ptr, n, d, 1, 16, 16, 8.0);
   cout << "Exact KDE" << endl;
-  cout << kde.query(x.data()) << endl;
+  cout << kde.query(q) << endl;
   cout << "HBE" << endl;
-  cout << lsh.query(x.data(), 1, 1) << endl;
-  cout << lsh.query(x.data(), 2, 2) << endl;
-  cout << lsh.query(x.data(), 4, 4) << endl;
-  cout << lsh.query(x.data(), 16, 16) << endl;
+  cout << lsh.query(q, 1, 1) << endl;
+  cout << lsh.query(q, 1, 2) << endl;
+  cout << lsh.query(q, 1, 4) << endl;
+  cout << lsh.query(q, 1, 16) << endl;
   cout << "Random Sample" << endl;
-  cout << rs.query(x.data(), 16, 16) << endl;
-  cout << rs.query(x.data(), 32, 32) << endl;
-  cout << rs.query(x.data(), 64, 64) << endl;
-  cout << rs.query(x.data(), 128, 128) << endl;
-  cout << rs.query(x.data(), 256, 256) << endl;
-  cout << rs.query(x.data(), 1024, 1024) << endl;
+  cout << rs.query(q, 1, 1u << 4u) << endl;
+  cout << rs.query(q, 1, 1u << 8u) << endl;
+  cout << rs.query(q, 1, 1u << 10u) << endl;
+  cout << rs.query(q, 1, 1u << 16u) << endl;
+  cout << rs.query(q, 1, 1u << 20u) << endl;
+  cout << rs.query(q, 1, 1u << 24u) << endl;
 }

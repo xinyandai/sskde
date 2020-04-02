@@ -41,8 +41,6 @@ class HashBucket {
    */
   void update(const T* p, int d) {
     count += 1;
-    std::random_device rd;
-    auto rng = std::mt19937_64(rd());
     auto distribution = std::uniform_real_distribution<T>(0, 1);
     T r = distribution(rng);
     if (r <= 1.0 / count) {

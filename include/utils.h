@@ -16,6 +16,10 @@
 using T = float;
 using std::vector;
 
+/**instialized **/
+extern std::random_device rd;
+extern std::mt19937_64 rng;
+
 static T l2dist_sqr(const T *vec1, const T *vec2, const int dim) {
   T dist = 0;
   for (int i = 0; i < dim; ++i) {
@@ -45,8 +49,6 @@ static T median(std::vector<T >* z) {
 
 
 static T* random_normal(int n, T mean = 0.0, T var = 1.0) {
-  std::random_device rd;
-  auto rng = std::mt19937_64(rd());
   T *r = new T[n];
   std::normal_distribution<T > normal(mean, var);
   for (int i = 0; i < n; i ++) {
@@ -56,8 +58,6 @@ static T* random_normal(int n, T mean = 0.0, T var = 1.0) {
 }
 
 static T* random_uniform(int n, T lower = 0.0, T upper = 1.0) {
-  std::random_device rd;
-  auto rng = std::mt19937_64(rd());
   T *r = new T[n];
   std::uniform_real_distribution<T > uniform(lower, upper);
   for (int i = 0; i < n; i ++) {

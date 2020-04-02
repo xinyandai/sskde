@@ -18,8 +18,6 @@ class RandomSample {
   }
 
   T query(const T* q, int l, int m) const {
-    std::random_device rd;
-    auto rng = std::mt19937_64(rd());
     std::uniform_int_distribution<int > distribution(0, n_ - 1);
     std::vector<T > z = std::vector<T >(l, 0);
     for (int i = 0; i < l; i ++) {
