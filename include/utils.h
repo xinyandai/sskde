@@ -7,6 +7,7 @@
 #define SSKDE_INCLUDE_UTILS_H_
 
 #include <algorithm>
+#include <chrono>
 #include <functional>
 #include <iostream>
 #include <random>
@@ -84,6 +85,34 @@ struct VectorHash {
     }
     return seed;
   }
+};
+
+
+using std::chrono::milliseconds;
+using std::chrono::duration_cast;
+using std::chrono::high_resolution_clock;
+
+/** A timer object measures elapsed time,
+ * and it is very similar to boost::timer. */
+class timer {
+ public:
+  timer() { restart(); }
+  ~timer() = default;
+  /** \brief Restart the timer. */
+  double restart() {
+    auto t_end = high_resolution_clock::now();
+    auto diff = duration_cast<milliseconds>(t_end - t_start).count();
+    t_start = high_resolution_clock::now();
+    return diff;
+  }
+  /** \return The elapsed time */
+  double elapsed() {
+    auto t_end = high_resolution_clock::now();
+    return duration_cast<milliseconds>(t_end - t_start).count();
+  }
+
+ private:
+  high_resolution_clock::time_point t_start;
 };
 
 #endif  //SSKDE_INCLUDE_UTILS_H_

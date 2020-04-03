@@ -11,7 +11,7 @@
 
 class ExactKDE {
  public:
-  ExactKDE(T* x, int n, int d): n_(n), d_(d) {
+  ExactKDE(const T* x, int n, int d): n_(n), d_(d) {
     x_ = new T[n * d];
     std::memcpy(x_, x, sizeof(T) * n * d);
   }

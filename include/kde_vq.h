@@ -94,7 +94,7 @@ void kmeans(T* centroids, CodeType* code, const T* data,
 template <size_t M=2>
 class VQE {
  public:
-  VQE(T* x, int n, int d): n_(n), d_(d), dims_(M + 1, 0) {
+  VQE(const T* x, int n, int d): n_(n), d_(d), dims_(M + 1, 0) {
     // dims_[0] = 0
     for (int i = 0; i < M; ++i) {
       dims_[i+1] = dims_[i] + d_ / M + (i < d_ % M) ? 1 : 0;
@@ -157,7 +157,7 @@ class VQE {
     return density / n_;
   }
 
- private:
+ protected:
   const int n_;
   const int d_;
 

@@ -185,7 +185,7 @@ class HashTable {
 
 class HBE {
  public:
-  HBE(T* xs, int n, int d, int l, int m, int k, T w)
+  HBE(const T* xs, int n, int d, int l, int m, int k, T w)
              : l_(l), m_(m), n_(n), d_(d) {
     hash_.reserve(1ull * l * m);
     tables_.reserve(1ull * l * m);
@@ -195,7 +195,7 @@ class HBE {
     }
 #pragma omp parallel for
     for (int i = 0; i < l * m; ++i) {
-      T* x = xs;
+      const T* x = xs;
       for (int j = 0; j < n; ++j, x+=d) {
         tables_[i].insert(x);
       }
