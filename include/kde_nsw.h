@@ -8,16 +8,22 @@
 #include <hnswlib/hnswlib.h>
 #include <hnswlib/space_l2.h>
 
-using namespace hnswlib;
+using hnswlib::L2Space;
+using hnswlib::HierarchicalNSW;
+
+template <typename R, typename S>
+R* const_reinterpret_cast(const S* x) {
+  return const_cast<R*>(reinterpret_cast<const R*>(x));
+}
 
 class GraphKDE {
  public:
   GraphKDE(const T* x, int n, int d): n_(n), d_(d), space_((size_t) d),
                                       hnsw_(&space_, (size_t) n, 16, 128) {
-    hnsw_.addPoint((void *)x, (size_t) 0);
+    hnsw_.addPoint(const_reinterpret_cast<void, T>(x), (size_t) 0);
 #pragma omp parallel for
     for (int i = 1; i < n; i++) {
-      hnsw_.addPoint((void *) (x + d * i), (size_t) i);
+      hnsw_.addPoint(const_reinterpret_cast<void, T>(x + d * i), (size_t) i);
     }
 
     hnsw_.setEf(64);
@@ -26,7 +32,7 @@ class GraphKDE {
   T query(const T* q, size_t k) {
     auto result = hnsw_.searchKnn(q, k);
     T density = 0.0;
-    while (result.size()) {
+    while (!result.empty()) {
       density += gaussian_kernel(result.top().first, 1.0f);
       result.pop();
     }
@@ -39,4 +45,4 @@ class GraphKDE {
   L2Space             space_;
   HierarchicalNSW<T > hnsw_;
 };
-#endif //SSKDE_KDE_NSW_H
+#endif  // SSKDE_KDE_NSW_H
