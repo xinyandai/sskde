@@ -6,6 +6,7 @@
 #include <kde_exact.h>
 #include <kde_qie.h>
 #include <kde_rs.h>
+#include <kde_nsw.h>
 #include <kde_vq.h>
 #include <kde_lsh.h>
 #include <data_loader.h>
@@ -65,6 +66,18 @@ void benchmark(const T* xs, const T* qs, int nx, int nq, int d) {
       gt_density[i] =  kde.query(qs + i * d);
     }
     printf("query ExactKDE time \t%.5f\n", t.restart());
+  }
+
+  {
+    t.restart();
+    GraphKDE graph(xs, nx, d);
+    printf("construct HNSW time \t%.5f\n", t.restart());
+    for (int i = 0; i < nq; ++i) {
+      vq_density[i] =  graph.query(qs + i * d, 32);
+    }
+    printf("query HNSW time \t%.5f\n", t.restart());
+    printf("query variance \t%.5f\n",
+           l2dist_sqr(gt_density.data(), vq_density.data(), nq));
   }
 
   {
@@ -133,7 +146,7 @@ int main() {
 //  T* q_ptr = x.data();
 //  T* x_ptr = x.data();
 
-  nx = 100000;
+  nx = 1000000;
   nq = 10;
   d = 256;
   T* xs = random_normal(nx * d, 0, 0.1);
