@@ -47,7 +47,7 @@ int vq(const T* w, const T* dict, int ks, int d) {
  */
 void kmeans(T* centroids, CodeType* code, const T* data,
             const int n, const int ks, const int sub_d,
-            const int full_d, const int iter) {
+            const int full_d, const int iter, bool verbose) {
   if (ks > n) {
     throw std::runtime_error("too many centroids");
   }
@@ -55,7 +55,7 @@ void kmeans(T* centroids, CodeType* code, const T* data,
   // random initialization
   std::memcpy(centroids, data, ks * sub_d * sizeof(T));
 
-  ProgressBar bar(iter, std::string("k-means"));
+  ProgressBar bar(iter, "k-means", verbose);
   for (int i = 0; i < iter; ++i, ++bar) {
     // assign
 #pragma omp parallel for
@@ -94,7 +94,7 @@ void kmeans(T* centroids, CodeType* code, const T* data,
 template <size_t M=2>
 class VQE {
  public:
-  VQE(const T* x, int n, int d): n_(n), d_(d), dims_(M + 1, 0) {
+  VQE(const T* x, int n, int d, bool verbose = false): n_(n), d_(d), dims_(M + 1, 0) {
     // dims_[0] = 0
     for (int i = 0; i < M; ++i) {
       dims_[i+1] = dims_[i] + d_ / M + (i < d_ % M) ? 1 : 0;
@@ -103,11 +103,11 @@ class VQE {
     x_ = new T[n * d];
     dict_ = new T[Ks * dims_[1]];
     code_ = new CodeType[M * n];
-    train_pq();
+    train_pq(verbose);
     std::memcpy(x_, x, sizeof(T) * n * d);
   }
 
-  void train_pq() {
+  void train_pq(bool verbose) {
     const int sub_d = dims_[1];
     for (int i = 0; i < M; ++i) {
       kmeans(/*centroids*/ &dict_[i * Ks * sub_d],
@@ -117,7 +117,8 @@ class VQE {
              /*Ks*/        Ks,
              /*sub_d*/     dims_[i+1] - dims_[i],
              /*full_d*/    d_,
-             /*iter*/      20);
+             /*iter*/      20,
+             /*verbose*/   verbose);
     }
   }
 
@@ -127,8 +128,10 @@ class VQE {
     delete[] code_;
   }
 
-  T query(const T* q, T dist) const {
+  T query(const T* q, T percent) const {
     T table[M][Ks];
+    std::pair<T, int> s[n_];
+    int k = percent * n_;
     const int sub_d = dims_[1];
     T* codeword = dict_;
     for (int m = 0; m < M; ++m) {
@@ -140,7 +143,7 @@ class VQE {
       }
     }
 
-    T density = 0;
+
     T* x = x_;
     for (int i = 0; i < n_; ++i, x+=d_) {
       T dist_sqr = 0;
@@ -148,12 +151,21 @@ class VQE {
         CodeType c = code_[m * n_+ i];
         dist_sqr += table[m][c];
       }
-      if (dist_sqr < dist) {
-        density += gaussian_kernel(q, x, 1, d_);
+      s[i] = {dist_sqr, i};
+    }
+
+    std::nth_element(s, s + k, s + n_);
+
+    T density = 0;
+    T C = s[k].first;
+    for (int i = 0; i < n_; ++i) {
+      if (s[i].first <= C) {
+        density += gaussian_kernel(q, x_ + s[i].second * d_, 1, d_);
       } else {
-        density += gaussian_kernel(dist_sqr, 1);
+        density += gaussian_kernel(s[i].first , 1);
       }
     }
+
     return density / n_;
   }
 
